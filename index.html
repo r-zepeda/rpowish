@@ -1,0 +1,275 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>ORP WISHLIST</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script>
+			tailwind.config = {
+				theme: {
+					extend: {
+						colors: {
+							'crimson': '#540219',
+							'gold': '#D4AF37',
+							'teal': '#0B5563',
+						}
+					}
+				}
+			}
+		</script>
+		<style>
+			body {
+				background: linear-gradient(180deg, #540219 0%, #6B0F2B 50%, #540219 100%);
+				background-attachment: fixed;
+			}
+			.ornament-border {
+				border-image: linear-gradient(90deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%) 1;
+			}
+			@keyframes snowfall {
+				0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
+				10% { opacity: 1; }
+				90% { opacity: 1; }
+				100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+			}
+			.snow {
+				position: fixed;
+				top: -10px;
+				z-index: 9999;
+				pointer-events: none;
+				animation: snowfall linear infinite;
+			}
+		</style>
+	</head>
+	<body class="min-h-screen relative overflow-x-hidden">
+		<!-- Decorative snow -->
+		<div id="snowContainer"></div>
+		
+		<div class="max-w-5xl mx-auto p-4 md:p-8 py-8 md:py-16 relative z-10">
+			<header class="mb-10 text-center relative">
+				<!-- Ornamental top decoration -->
+				<div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-6xl opacity-80">🔔</div>
+				
+				<div class="p-8 md:p-12 rounded-3xlrelative overflow-hidden">
+					<!-- Background pattern -->
+					<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #FFD700 1px, transparent 1px); background-size: 20px 20px;"></div>
+					
+					<!-- Corner ornaments -->
+					
+					<div class="relative z-10">
+						<p class="text-gold text-sm md:text-base font-serif tracking-[0.3em] mb-2">DOJ ORP V</p>
+						<h1 class="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-gold to-yellow-600 mb-2 drop-shadow-lg">
+							CHRISTMAS PARTY
+						</h1>
+						<p class="text-gold text-base md:text-lg font-serif tracking-[0.2em] mb-6 italic">Colors of Christmas</p>
+						<div class="h-1 w-48 mx-auto bg-gradient-to-r from-transparent via-gold to-transparent mb-6"></div>
+						<p class="text-yellow-200 text-xs md:text-sm mt-2 font-serif">Office of the Regional Prosecutor V<br/>Hall of Justice Bldg., Rawis, Legazpi City</p>
+					</div>
+				</div>
+			</header>
+
+			<section class="bg-gradient-to-br from-red-900 to-crimson rounded-2xl shadow-2xl p-6 md:p-8 mb-8 border-4 border-gold relative overflow-hidden">
+				<!-- Background ornaments -->
+				<div class="absolute top-0 right-0 text-9xl opacity-5">🎁</div>
+				<div class="absolute bottom-0 left-0 text-9xl opacity-5">🎄</div>
+				
+				<div class="relative z-10">
+					<div class="flex items-center justify-center gap-3 mb-6">
+						<span class="text-3xl">🔍</span>
+						<h2 class="text-2xl md:text-3xl font-serif font-bold text-gold drop-shadow-lg">Search Codename</h2>						
+					</div>
+					<div class="flex flex-col md:flex-row gap-4">
+						<input id="codenameInput" 
+							class="flex-1 border-4 border-gold bg-white/95 focus:bg-white focus:border-yellow-400 focus:ring-4 focus:ring-yellow-300 rounded-xl px-6 py-5 text-lg font-medium transition-all outline-none shadow-xl" 
+							placeholder="Enter codename here..." />
+						<button id="searchBtn" 
+							class="bg-gradient-to-r from-teal to-green-700 hover:from-green-600 hover:to-teal text-white px-10 py-5 rounded-xl font-bold text-lg shadow-2xl hover:shadow-gold/50 transition-all transform hover:scale-105 active:scale-95 border-2 border-gold">
+							🎁 SEARCH
+						</button>
+					</div>
+					<div class="mt-5 p-4 bg-yellow-100/20 backdrop-blur-sm rounded-xl border-2 border-gold/50">
+						<p class="text-sm text-yellow-100 text-center">💡 <span class="font-semibold text-gold">Tip:</span> If no results appear, the person hasn't posted their wishlist yet.</p>
+					</div>
+				</div>
+			</section>
+
+			<section id="result" class="bg-gradient-to-br from-red-900 to-crimson rounded-2xl shadow-2xl p-6 md:p-8 min-h-[250px] border-4 border-gold relative overflow-hidden">
+				<div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle, #FFD700 1px, transparent 1px); background-size: 30px 30px;"></div>
+				
+				<div class="relative z-10">
+					<div class="flex items-center justify-center gap-3 mb-6">
+						<span class="text-3xl">✨</span>
+						<h2 class="text-2xl md:text-3xl font-serif font-bold text-gold drop-shadow-lg">Wishlist Results</h2>
+						<span class="text-3xl">✨</span>
+					</div>
+					<div id="resultContent" class="text-white">
+						<div class="flex flex-col items-center justify-center py-16 text-yellow-100">
+							<span class="text-7xl mb-6 animate-bounce">🎁</span>
+							<p class="text-xl font-serif">Enter a codename to reveal the wishlist</p>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<footer class="mt-12 text-center">
+
+			</footer>
+		</div>
+
+		<script>
+			// Hardcoded sheet settings
+			const SHEET_ID = '18pxQ7j8OKikHveh2Qf6orPxrFf7OdgpeKvIovVxo8fU';
+			const SHEET_NAME = 'test';
+
+			const searchBtn = document.getElementById('searchBtn');
+			const codenameInput = document.getElementById('codenameInput');
+			const resultContent = document.getElementById('resultContent');
+
+			// Fetch GViz JSON and parse rows into objects
+			async function fetchSheetRows(sheetId, sheetName) {
+				if (!sheetId) throw new Error('Missing sheet ID');
+				const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+				const res = await fetch(url);
+				if (!res.ok) throw new Error('Failed to fetch sheet — check sheet ID and sharing settings.');
+				const text = await res.text();
+				// GViz wraps JSON in a function call; extract the JSON payload
+				const start = text.indexOf('(');
+				const end = text.lastIndexOf(')');
+				const jsonText = text.substring(start + 1, end);
+				const data = JSON.parse(jsonText);
+				const allRows = data.table.rows;
+				
+				// First row contains the headers
+				if (allRows.length === 0) throw new Error('Sheet is empty');
+				const headerRow = allRows[0];
+				const cols = headerRow.c.map(cell => (cell && cell.v ? String(cell.v).trim() : ''));
+				
+				// Skip the header row and parse data rows
+				const rows = allRows.slice(1).map(r => {
+					const obj = {};
+					for (let i = 0; i < cols.length; i++) {
+						const cell = r.c[i];
+						obj[cols[i] || `col${i}`] = cell && typeof cell.v !== 'undefined' ? cell.v : '';
+					}
+					return obj;
+				});
+				return { cols, rows };
+			}
+
+			// Normalize codename for matching
+			function normalize(s) {
+				if (!s) return '';
+				return String(s).trim().toLowerCase().replace(/\s+/g, ' ');
+			}
+
+			// Search handler
+			async function searchCodename() {
+				const codename = codenameInput.value.trim();
+				if (!codename) {
+					resultContent.innerHTML = '<div class="flex flex-col items-center py-12 text-yellow-200"><span class="text-6xl mb-4">⚠️</span><p class="text-xl font-serif font-semibold text-gold">Please enter a codename</p></div>';
+					return;
+				}
+
+			resultContent.innerHTML = '<div class="flex flex-col items-center py-16"><div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gold mb-6"></div><p class="text-yellow-100 text-xl font-serif">Searching for wishlist...</p><p class="text-gold text-sm mt-2">✨ Please wait ✨</p></div>';
+			try {
+				const { cols, rows } = await fetchSheetRows(SHEET_ID, SHEET_NAME);
+					// Find a column that is likely the codename column
+					// We'll assume there's a column labeled 'CODENAME' (case-insensitive), else use first column.
+					const codenameColIndex = cols.findIndex(c => /codename/i.test(c)) !== -1 ? cols.findIndex(c => /codename/i.test(c)) : 0;
+					const codenameCol = cols[codenameColIndex];
+
+					// Build an index by normalized codename
+					const index = {};
+					rows.forEach(r => {
+						const key = normalize(r[codenameCol]);
+						if (!key) return;
+						index[key] = index[key] || [];
+						index[key].push(r);
+					});
+
+					const key = normalize(codename);
+					if (!index[key]) {
+						resultContent.innerHTML = '<div class="flex flex-col items-center py-16"><span class="text-8xl mb-6 opacity-50">🎅</span><p class="text-2xl font-serif font-bold text-gold mb-3">No Wishlist Found</p><p class="text-yellow-100 text-lg">for <span class="font-bold text-gold">' + escapeHtml(codename) + '</span></p><p class="text-sm text-yellow-200 mt-4 bg-crimson/50 px-6 py-3 rounded-full border border-gold/30">🎄 They may not have posted their wishlist yet</p></div>';
+						return;
+					}
+
+					// Render matches (could be multiple rows)
+					const html = index[key].map(row => renderRow(row, cols)).join('<hr class="my-3">');
+					resultContent.innerHTML = html;
+				} catch (err) {
+					resultContent.innerHTML = '<div class="flex flex-col items-center py-12"><span class="text-6xl mb-4">❌</span><p class="text-2xl font-serif font-bold text-red-300 mb-3">Oops! Something went wrong</p><p class="text-sm text-yellow-100 bg-red-900/50 px-6 py-3 rounded-xl border-2 border-red-400">' + escapeHtml(err.message) + '</p></div>';
+					console.error(err);
+				}
+			}
+
+			function renderRow(row, cols) {
+				// Show codename and wishlist columns if labeled 'WISHLIST' or similar, else show all columns
+				const wishlistCols = cols.filter(c => /wishlists?|wishlist|item/i.test(c));
+				const parts = [];
+				
+				// Header with codename
+				parts.push('<div class="bg-gradient-to-r from-teal via-green-700 to-teal text-white px-8 py-6 rounded-t-2xl border-b-4 border-gold relative overflow-hidden"><div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 20px 20px;"></div><div class="relative z-10 flex items-center justify-center gap-3"><span class="text-4xl">🎅</span><h3 class="text-3xl font-serif font-bold drop-shadow-lg">' + escapeHtml(row[cols[0]] || '') + '</h3><span class="text-4xl">🎄</span></div></div>');
+				
+				// Wishlist items
+				parts.push('<div class="p-6 md:p-8 space-y-5 bg-gradient-to-br from-red-50 to-yellow-50">');
+				
+				if (wishlistCols.length) {
+					wishlistCols.forEach((c, idx) => {
+						const v = row[c] || '';
+						if (!v || v === 'None') return;
+						const emoji = ['🎁', '🎉', '✨'][idx] || '🎁';
+						parts.push('<div class="bg-white rounded-2xl p-6 border-l-8 border-gold shadow-lg hover:shadow-2xl transition-all transform hover:scale-[1.02] relative overflow-hidden"><div class="absolute top-0 right-0 text-6xl opacity-5">' + emoji + '</div><div class="relative z-10 flex items-start gap-4"><span class="text-4xl mt-1 flex-shrink-0">' + emoji + '</span><div class="flex-1"><h4 class="font-serif font-bold text-crimson mb-3 text-xl border-b-2 border-gold/30 pb-2">' + escapeHtml(c) + '</h4><div class="text-gray-800 leading-relaxed text-base">' + formatLinksAndNewlines(escapeHtml(v)) + '</div></div></div></div>');
+					});
+				} else {
+					cols.forEach((c, idx) => {
+						if (!row[c] || c === cols[0]) return;
+						const emoji = ['🎁', '🎉', '✨'][idx] || '🎁';
+						parts.push('<div class="bg-white rounded-2xl p-6 border-l-8 border-gold shadow-lg hover:shadow-2xl transition-all transform hover:scale-[1.02]"><div class="flex items-start gap-4"><span class="text-4xl mt-1">' + emoji + '</span><div class="flex-1"><h4 class="font-serif font-bold text-crimson mb-3 text-xl">' + escapeHtml(c) + '</h4><div class="text-gray-800 leading-relaxed">' + formatLinksAndNewlines(escapeHtml(row[c])) + '</div></div></div></div>');
+					});
+				}
+				
+				parts.push('</div>');
+				return '<div class="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-gold transform transition-all hover:scale-[1.01] mb-6">' + parts.join('') + '</div>';
+			}
+
+			// Small helpers
+			function escapeHtml(s) {
+				return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			}
+
+		function formatLinksAndNewlines(text) {
+			// Convert URLs to styled anchors with Christmas theme and newlines to <br>
+			const urlified = text.replace(/(https?:\/\/[^\s]+)/g, '<a class="inline-flex items-center gap-2 text-teal hover:text-green-700 font-semibold underline decoration-2 decoration-gold hover:decoration-teal transition-all bg-yellow-100 hover:bg-yellow-200 px-3 py-1 rounded-lg border border-gold/30" href="$1" target="_blank" rel="noopener noreferrer">🔗 Visit Link</a>');
+			return urlified.replace(/\n/g, '<br>');
+		}
+
+		searchBtn.addEventListener('click', searchCodename);
+		codenameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchCodename(); });
+		
+		// Create falling snow effect
+		function createSnow() {
+			const snowContainer = document.getElementById('snowContainer');
+			const snowflakes = ['❄', '❅', '❆', '✨', '⭐'];
+			
+			setInterval(() => {
+				if (document.querySelectorAll('.snow').length > 50) return; // Limit snowflakes
+				
+				const snow = document.createElement('div');
+				snow.className = 'snow';
+				snow.textContent = snowflakes[Math.floor(Math.random() * snowflakes.length)];
+				snow.style.left = Math.random() * 100 + 'vw';
+				snow.style.fontSize = (Math.random() * 10 + 10) + 'px';
+				snow.style.opacity = Math.random() * 0.6 + 0.4;
+				snow.style.animationDuration = (Math.random() * 3 + 5) + 's';
+				snow.style.color = Math.random() > 0.5 ? '#FFD700' : '#FFFFFF';
+				
+				snowContainer.appendChild(snow);
+				
+				setTimeout(() => snow.remove(), 8000);
+			}, 300);
+		}
+		
+		createSnow();
+	</script>
+</body>
+</html>
