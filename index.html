@@ -22,6 +22,20 @@
 			body {
 				background: linear-gradient(180deg, #540219 0%, #6B0F2B 50%, #540219 100%);
 				background-attachment: fixed;
+				position: relative;
+			}
+			body::before {
+				content: '';
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background-image: radial-gradient(circle, #FFD700 1px, transparent 1px);
+				background-size: 20px 20px;
+				opacity: 0.1;
+				pointer-events: none;
+				z-index: 0;
 			}
 			.ornament-border {
 				border-image: linear-gradient(90deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%) 1;
@@ -50,13 +64,9 @@
 				<!-- Ornamental top decoration -->
 				<div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-6xl opacity-80">⭐️</div>
 				
-				<div class="p-8 md:p-12 rounded-3xlrelative overflow-hidden">
-					<!-- Background pattern -->
-					<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #FFD700 1px, transparent 1px); background-size: 20px 20px;"></div>
-					
-					<!-- Corner ornaments -->
-					
-					<div class="relative z-10">
+			<div class="p-8 md:p-12 rounded-3xlrelative overflow-hidden">
+				
+				<!-- Corner ornaments -->					<div class="relative z-10">
 						<p class="text-gold text-sm md:text-base font-serif tracking-[0.3em] mb-2">DOJ ORP V</p>
 						<h1 class="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-gold to-yellow-600 mb-2 drop-shadow-lg">
 							CHRISTMAS PARTY
