@@ -1,0 +1,320 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SECURE CODENAME REVEAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { 
+                    colors: { 'crimson': '#540219', 'gold': '#D4AF37', 'teal': '#0B5563' } 
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: linear-gradient(180deg, #540219 0%, #6B0F2B 50%, #540219 100%); 
+            background-attachment: fixed; 
+            min-height: 100vh; overflow-x: hidden; margin: 0;
+            position: relative;
+        }
+
+        /* VERTICAL FALLING STARFIELD */
+        .stars-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+        .star {
+            position: absolute; background: white; border-radius: 50%;
+            opacity: 0.3; 
+            animation: 
+                twinkle var(--twinkle-duration) infinite ease-in-out,
+                fall var(--fall-duration) infinite linear;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.3); }
+        }
+
+        @keyframes fall {
+            from { transform: translateY(-10vh); }
+            to { transform: translateY(110vh); }
+        }
+
+        /* SIDEBAR LOGIC */
+        .sidebar {
+            width: 320px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(15px);
+            border-right: 2px solid rgba(212, 175, 55, 0.3); height: 100vh;
+            position: fixed; left: 0; top: 0; z-index: 30; padding: 1.5rem; 
+            display: flex; flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar.collapsed {
+            transform: translateX(-320px);
+        }
+        .main-content {
+            margin-left: 320px; width: calc(100% - 320px); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center; position: relative; z-index: 10;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .main-content.expanded {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        /* TOGGLE BUTTON */
+        .sidebar-toggle {
+            position: fixed; left: 320px; top: 20px; z-index: 40;
+            background: #D4AF37; color: #540219; padding: 8px 12px;
+            border-radius: 0 8px 8px 0; cursor: pointer; font-weight: bold;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar.collapsed + .sidebar-toggle {
+            left: 0;
+        }
+
+        .picker-window { 
+            position: relative; height: 500px; width: 100%; max-width: 700px; overflow: hidden; 
+            mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 85%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 85%, transparent 100%);
+            background: rgba(0,0,0,0.2); border-radius: 20px;
+        }
+        .picker-list { list-style: none; transition: transform 3.5s cubic-bezier(.1, .9, .2, 1); }
+        .picker-item { 
+            height: 64px; display: flex; align-items: center; justify-content: center; 
+            font-weight: 800; color: #FFFFFF; font-family: ui-serif, Georgia, serif; 
+            font-size: 1.8rem; text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 40px;
+        }
+        .picker-selection-frame { 
+            position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 90px; 
+            border-top: 6px solid #D4AF37; border-bottom: 6px solid #D4AF37; pointer-events: none; z-index: 10;
+            background: radial-gradient(circle, rgba(212,175,55,0.25) 0%, transparent 80%);
+        }
+        .spin-btn {
+            width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle, #0B5563 0%, #06343d 100%); border: 4px solid #D4AF37;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); color: white; font-weight: 900; font-size: 1.3rem;
+            cursor: pointer; transition: all 0.2s ease; position: absolute; right: -130px; top: 50%; transform: translateY(-50%); z-index: 40;
+        }
+        .gold-gradient-text {
+            background: linear-gradient(to bottom, #fef08a, #D4AF37, #a16207);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        #realNameDisplay {
+            opacity: 0; transform: translateY(10px); transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        #realNameDisplay.visible { opacity: 1; transform: translateY(0); }
+        .rolling-status { animation: statusPulse 0.4s infinite; }
+        @keyframes statusPulse { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+    </style>
+</head>
+<body>
+    <div id="stars" class="stars-container"></div>
+    <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" preload="auto"></audio>
+
+    <aside id="sidebar" class="sidebar">
+        <h3 class="text-gold font-serif text-xl mb-4 font-bold flex justify-between">Names <span id="nameCountDisplay" class="text-white/40 text-xs">0</span></h3>
+        <button id="editBtn" class="w-full py-2 mb-4 bg-teal/40 text-white text-[10px] uppercase font-bold rounded border border-teal/40">✏️ Edit Names</button>
+        <div class="flex-grow relative overflow-hidden flex flex-col mb-4">
+            <div id="maskedListDisplay" class="absolute inset-0 overflow-y-auto custom-scroll space-y-2 bg-black/30 p-3 rounded-lg border border-gold/10"></div>
+            <textarea id="namesTextArea" class="hidden absolute inset-0 w-full h-full bg-black/60 border border-gold/40 rounded-xl p-4 text-white font-mono text-xs outline-none resize-none" placeholder="Codename : Real Name"></textarea>
+        </div>
+        <button id="clearAllBtn" class="w-full py-2 text-red-400/50 text-[10px] uppercase font-bold border border-red-400/10 rounded-lg">Clear All</button>
+    </aside>
+
+    <button id="toggleSidebar" class="sidebar-toggle" title="Toggle Name List">Secret</button>
+
+    <main id="mainContent" class="main-content">
+        <div class="flex flex-col items-center w-full max-w-5xl px-4">
+            <p class="text-3xl md:text-4xl font-bold text-white/95 uppercase tracking-[0.25em] mb-3 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+                RPO Exchange Gift
+            </p>
+            <h2 class="text-4xl md:text-7xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-gold to-yellow-600 mb-10 text-center uppercase tracking-tight">Codename Reveal</h2>
+            
+            <div class="relative w-full max-w-2xl flex justify-center items-center">
+                <div class="picker-window">
+                    <ul id="pickerList" class="picker-list m-0 p-0"></ul>
+                    <div class="picker-selection-frame"></div>
+                </div>
+                <button id="spinBtn" class="spin-btn">SPIN</button>
+            </div>
+
+            <div class="mt-12 min-h-[220px] flex flex-col items-center text-center">
+                <div id="revealResult" class="text-5xl font-serif font-bold text-white tracking-wider transition-all duration-700"></div>
+                <button id="revealIdentityBtn" class="hidden mt-8 px-14 py-5 bg-gold/10 border-2 border-gold text-gold rounded-full hover:bg-gold hover:text-crimson transition-all font-black uppercase tracking-[0.2em] shadow-lg">REVEAL IDENTITY</button>
+                <div id="realNameDisplay" class="mt-6 text-4xl md:text-5xl font-serif font-bold uppercase gold-gradient-text drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
+                <button id="removeWinnerBtn" class="hidden mt-8 text-red-400 text-xs underline uppercase tracking-widest hover:text-red-300">Remove from List</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Sidebar Toggle Logic
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        toggleBtn.onclick = () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        };
+
+        // Generate Vertical Falling Stars
+        const starsContainer = document.getElementById('stars');
+        const starCount = 100;
+
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 3 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 10 + 's';
+            star.style.setProperty('--twinkle-duration', Math.random() * 3 + 2 + 's');
+            const speed = (Math.random() * 15 + 10) / (size * 0.5); 
+            star.style.setProperty('--fall-duration', speed + 's');
+            starsContainer.appendChild(star);
+        }
+
+        const namesTextArea = document.getElementById('namesTextArea');
+        const maskedListDisplay = document.getElementById('maskedListDisplay');
+        const listEl = document.getElementById('pickerList');
+        const winSound = document.getElementById('winSound');
+        const revealResult = document.getElementById('revealResult');
+        const revealIdentityBtn = document.getElementById('revealIdentityBtn');
+        const realNameDisplay = document.getElementById('realNameDisplay');
+        const removeWinnerBtn = document.getElementById('removeWinnerBtn');
+        const editBtn = document.getElementById('editBtn');
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playLightBeep() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(850, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        const defaultNames = "Maverick : Tom Cruise\nBlack Widow : Scarlett Johansson\n007 : James Bond\nIron Man : Tony Stark";
+        namesTextArea.value = localStorage.getItem('orp_names') || defaultNames;
+
+        let currentWinnerData = null;
+        let isSpinning = false;
+        let isEditing = false;
+
+        editBtn.onclick = () => {
+            isEditing = !isEditing;
+            namesTextArea.classList.toggle('hidden', !isEditing);
+            maskedListDisplay.classList.toggle('hidden', isEditing);
+            editBtn.textContent = isEditing ? "💾 Save & Hide" : "✏️ Edit Names";
+            if (!isEditing) updateDrum();
+        };
+
+        function getParsedData() {
+            return namesTextArea.value.split('\n').map(l => l.trim()).filter(l => l.includes(':')).map(l => {
+                const p = l.split(':');
+                return { fullLine: l, codename: p[0].trim(), realName: p[1].trim() };
+            });
+        }
+
+        function updateDrum() {
+            const data = getParsedData();
+            document.getElementById('nameCountDisplay').textContent = data.length;
+            localStorage.setItem('orp_names', namesTextArea.value);
+            maskedListDisplay.innerHTML = data.map(i => `<div class="text-[12px] flex justify-between border-b border-white/5 pb-1"><span class="text-gold font-bold">${i.codename}</span> <span class="text-white/20">••••••</span></div>`).join('');
+            listEl.innerHTML = '';
+            if (data.length === 0) return;
+            for (let r = 0; r < 20; r++) {
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'picker-item';
+                    li.textContent = item.codename;
+                    listEl.appendChild(li);
+                });
+            }
+        }
+
+        document.getElementById('spinBtn').onclick = () => {
+            const data = getParsedData();
+            if (isSpinning || data.length === 0) return;
+            isSpinning = true;
+            revealIdentityBtn.classList.add('hidden');
+            removeWinnerBtn.classList.add('hidden');
+            realNameDisplay.classList.remove('visible');
+            realNameDisplay.textContent = '';
+            revealResult.classList.remove('opacity-40');
+            revealResult.classList.add('rolling-status');
+            revealResult.innerHTML = "✨ ROLLING... ✨";
+
+            const itemHeight = 64;
+            const randIndex = Math.floor(Math.random() * (data.length * 5)) + (data.length * 10);
+            const translateY = -(randIndex * itemHeight) + (250 - 32); 
+
+            listEl.style.transition = 'none';
+            listEl.style.transform = `translateY(0px)`;
+            listEl.offsetHeight; 
+            listEl.style.transition = 'transform 3.5s cubic-bezier(.1, .9, .2, 1)';
+            listEl.style.transform = `translateY(${translateY}px)`;
+
+            let delay = 60;
+            let timer = 0;
+            const playTick = () => {
+                if (timer < 3400) {
+                    playLightBeep();
+                    delay *= 1.09;
+                    timer += delay;
+                    setTimeout(playTick, delay);
+                }
+            };
+            playTick();
+
+            setTimeout(() => {
+                revealResult.classList.remove('rolling-status');
+                currentWinnerData = data[randIndex % data.length];
+                revealResult.innerHTML = `⭐ ${currentWinnerData.codename} ⭐`;
+                winSound.play().catch(() => {});
+                isSpinning = false;
+                revealIdentityBtn.classList.remove('hidden');
+            }, 3500);
+        };
+
+        revealIdentityBtn.onclick = () => {
+            revealResult.innerHTML = currentWinnerData.codename;
+            revealResult.classList.add('opacity-40');
+            const rect = revealIdentityBtn.getBoundingClientRect();
+            confetti({ particleCount: 150, spread: 80, origin: { x: (rect.left + rect.width/2)/window.innerWidth, y: (rect.top + rect.height/2)/window.innerHeight }, colors: ['#D4AF37', '#0B5563', '#FFFFFF'] });
+            realNameDisplay.textContent = `⭐ ${currentWinnerData.realName} ⭐`;
+            revealIdentityBtn.classList.add('hidden');
+            setTimeout(() => { realNameDisplay.classList.add('visible'); removeWinnerBtn.classList.remove('hidden'); }, 50);
+        };
+
+        removeWinnerBtn.onclick = () => {
+            namesTextArea.value = namesTextArea.value.split('\n').filter(l => l.trim() !== currentWinnerData.fullLine).join('\n');
+            updateDrum();
+            removeWinnerBtn.classList.add('hidden');
+            realNameDisplay.classList.remove('visible');
+            setTimeout(() => { revealResult.innerHTML = ""; }, 500);
+        };
+
+        document.getElementById('clearAllBtn').onclick = () => { if(confirm("Wipe all data?")) { namesTextArea.value = ''; updateDrum(); } };
+        updateDrum();
+    </script>
+</body>
+</html>

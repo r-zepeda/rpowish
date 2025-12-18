@@ -1,0 +1,350 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PROGRAM - DOJ ORP V</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'crimson': '#540219',
+                        'gold': '#D4AF37',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #540219;
+            animation: backgroundPulse 10s infinite ease-in-out;
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'Playfair Display', serif;
+            color: white;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { background-color: #540219; }
+            50% { background-color: #7a0b2a; }
+        }
+
+        section {
+            height: 100vh;
+            width: 100%;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .dot-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(rgba(212, 175, 55, 0.15) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: rgba(255, 255, 255, 0.4);
+            user-select: none;
+            pointer-events: none;
+            z-index: 10;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        .cinzel { font-family: 'Cinzel', serif; }
+
+        .gold-text {
+            color: #D4AF37;
+            background: linear-gradient(to right, #a16207 0%, #D4AF37 25%, #fef08a 50%, #D4AF37 75%, #a16207 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 5s linear infinite;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .divider-line {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #D4AF37, transparent);
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .summary-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 1.5rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 5px 0;
+            font-size: 1.1rem;
+        }
+
+        /* Hiding Logic */
+        .time-label, .nav-links {
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s ease;
+        }
+
+        .is-hidden {
+            opacity: 0 !important;
+            transform: translateY(-15px);
+            pointer-events: none;
+        }
+
+        /* Toggle Button Ghost Effect */
+        #toggleBtn {
+            opacity: 0.25; /* Faded by default */
+            transition: all 0.4s ease;
+        }
+
+        #toggleBtn:hover {
+            opacity: 1; /* Bright on hover */
+            background: rgba(212, 175, 55, 0.2);
+        }
+
+        .event-title {
+            font-size: 5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        @media (max-width: 640px) {
+            .event-title { font-size: 2.8rem !important; }
+            .summary-item { font-size: 0.85rem; padding: 3px 0; }
+            .divider-line { max-width: 150px; }
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 1.2rem;
+            animation: bounce 2s infinite;
+            color: #D4AF37;
+            font-size: 0.7rem;
+            letter-spacing: 0.4em;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dot-overlay"></div>
+    <div id="snow-container"></div>
+
+    <nav class="fixed top-0 w-full py-4 px-6 flex justify-between items-center z-50">
+        <div id="navLinks" class="nav-links flex gap-10 flex-1 justify-center ml-20">
+            <a href="index.html" class="text-gold font-bold cinzel text-xs opacity-80 hover:opacity-100 transition-all uppercase">Home</a>
+            <a href="program.html" class="text-gold font-bold cinzel text-xs border-b border-gold uppercase tracking-widest">Program</a>
+        </div>
+        
+        <button id="toggleBtn" onclick="toggleDisplay()" class="text-gold border border-gold/40 px-4 py-1 cinzel text-[10px] tracking-[0.3em] transition-all rounded-full bg-black/10">
+            HIDE
+        </button>
+    </nav>
+
+    <section id="intro">
+        <h1 class="gold-text cinzel text-6xl md:text-8xl font-bold uppercase tracking-widest mt-8">Program</h1>
+        
+        <div class="flex items-center justify-center my-4 gap-4 w-full">
+            <div class="divider-line"></div>
+            <span class="text-white text-xl">❄</span>
+            <div class="divider-line"></div>
+        </div>
+        
+        <div class="summary-container font-serif">
+            <div class="summary-item"><span>10:00 am</span><span class="text-gold font-bold">Mass</span></div>
+            <div class="summary-item"><span>12:00 pm</span><span class="text-gold font-bold">Prayer</span></div>
+            <div class="summary-item"><span>12:05 pm</span><span class="text-gold font-bold">Lunch</span></div>
+            <div class="summary-item"><span>1:00 pm</span><span class="text-gold font-bold">Opening Message</span></div>
+            <div class="summary-item"><span>1:05 pm</span><span class="text-gold font-bold">Kickoff Carol</span></div>
+            <div class="summary-item"><span>1:15 pm</span><span class="text-gold font-bold">Jingle Game 1</span></div>
+            <div class="summary-item"><span>1:35 pm</span><span class="text-gold font-bold">Small Gifts (1st)</span></div>
+            <div class="summary-item"><span>2:00 pm</span><span class="text-gold font-bold">Jingle Game 2</span></div>
+            <div class="summary-item"><span>2:20 pm</span><span class="text-gold font-bold">Bingo Break</span></div>
+            <div class="summary-item"><span>3:00 pm</span><span class="text-gold font-bold">Afternoon Snack</span></div>
+            <div class="summary-item"><span>3:30 pm</span><span class="text-gold font-bold">Special Awards</span></div>
+            <div class="summary-item"><span>3:45 pm</span><span class="text-gold font-bold">Exchange Gift</span></div>
+            <div class="summary-item"><span>4:30 pm</span><span class="text-gold font-bold">Jingle Game 3</span></div>
+            <div class="summary-item"><span>4:45 pm</span><span class="text-gold font-bold">Small Gifts (2nd)</span></div>
+            <div class="summary-item"><span>5:15 pm</span><span class="text-gold font-bold">Jingle Game 4</span></div>
+            <div class="summary-item"><span>5:35 pm</span><span class="text-gold font-bold">Raffle</span></div>
+            <div class="summary-item"><span>6:00 pm</span><span class="text-gold font-bold">Small Gifts (Final)</span></div>
+            <div class="summary-item"><span>6:15 pm</span><span class="text-gold font-bold">Closing Remarks</span></div>
+            <div class="summary-item"><span>6:20 onwards</span><span class="text-gold font-bold">Socials</span></div>
+
+        </div>
+
+        <div class="scroll-indicator cinzel">SCROLL FOR DETAILS</div>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">10:00 AM</div>
+        <h2 class="event-title cinzel gold-text">Mass</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">12:00 PM</div>
+        <h2 class="event-title cinzel gold-text">Prayer</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">12:05 PM</div>
+        <h2 class="event-title cinzel gold-text">Lunch</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">1:00 PM</div>
+        <h2 class="event-title cinzel gold-text">Opening Message</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">1:05 PM</div>
+        <h2 class="event-title cinzel gold-text">Kickoff Carol</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">1:15 PM</div>
+        <h2 class="event-title cinzel gold-text">Jingle Game 1</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">1:35 PM</div>
+        <h2 class="event-title cinzel gold-text">Small Gifts <br>(1st)</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">2:00 PM</div>
+        <h2 class="event-title cinzel gold-text">Jingle Game 2</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">2:20 PM</div>
+        <h2 class="event-title cinzel gold-text">Bingo Break</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">3:00 PM</div>
+        <h2 class="event-title cinzel gold-text">Afternoon Snack</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">3:30 PM</div>
+        <h2 class="event-title cinzel gold-text">Special Awards</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">3:45 PM</div>
+        <h2 class="event-title cinzel gold-text">Exchange Gift</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">4:30 PM</div>
+        <h2 class="event-title cinzel gold-text">Jingle Game 3</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">4:45 PM</div>
+        <h2 class="event-title cinzel gold-text">Small Gifts <br>(2nd)</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">5:15 PM</div>
+        <h2 class="event-title cinzel gold-text">Jingle Game 4</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">5:35 PM</div>
+        <h2 class="event-title cinzel gold-text">Raffle</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">6:00 PM</div>
+        <h2 class="event-title cinzel gold-text">Small Gifts <br>(Final)</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">6:15 PM</div>
+        <h2 class="event-title cinzel gold-text">Closing Remarks</h2>
+    </section>
+
+    <section>
+        <div class="time-label cinzel toggleable-item">6:20 ONWARDS</div>
+        <h2 class="event-title cinzel gold-text">Socials</h2>
+        <a href="index.html" class="mt-8 cinzel text-gold/60 text-xs tracking-widest hover:text-gold transition-all border border-gold/30 px-8 py-3 rounded-full">FINISH</a>
+    </section>
+
+    <script>
+        function toggleDisplay() {
+            const navLinks = document.getElementById('navLinks');
+            const times = document.querySelectorAll('.toggleable-item');
+            const btn = document.getElementById('toggleBtn');
+            
+            navLinks.classList.toggle('is-hidden');
+            times.forEach(item => {
+                item.classList.toggle('is-hidden');
+            });
+
+            // Toggle Text
+            if (navLinks.classList.contains('is-hidden')) {
+                btn.textContent = "SHOW";
+            } else {
+                btn.textContent = "HIDE";
+            }
+        }
+
+        function createSnow() {
+            const container = document.getElementById('snow-container');
+            const flakes = ['❄', '❅', '❆', '•'];
+            setInterval(() => {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                flake.textContent = flakes[Math.floor(Math.random() * flakes.length)];
+                flake.style.left = Math.random() * 100 + 'vw';
+                flake.style.animationDuration = Math.random() * 5 + 7 + 's';
+                flake.style.opacity = Math.random() * 0.5 + 0.2;
+                flake.style.fontSize = Math.random() * 15 + 5 + 'px';
+                flake.style.filter = `blur(${Math.random() * 2}px)`;
+                container.appendChild(flake);
+                setTimeout(() => flake.remove(), 12000);
+            }, 350);
+        }
+        createSnow();
+    </script>
+</body>
+</html>
