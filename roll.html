@@ -1,0 +1,292 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ROLL - DOJ ORP V</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'crimson': '#540219',
+                        'gold': '#D4AF37',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+        body {
+            background: #540219;
+            animation: backgroundPulse 10s infinite ease-in-out;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Playfair Display', serif;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { background-color: #540219; }
+            50% { background-color: #7a0b2a; }
+        }
+
+        .dot-overlay {
+            position: fixed; inset: 0;
+            background-image: radial-gradient(rgba(212, 175, 55, 0.15) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none; z-index: 1;
+        }
+
+        .snowflake {
+            position: fixed; top: -10px; color: rgba(255, 255, 255, 0.4);
+            user-select: none; pointer-events: none; z-index: 10;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+
+        .cinzel { font-family: 'Cinzel', serif; }
+
+        /* ROULETTE TRACK */
+        .roulette-viewport {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            margin: 2rem 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            /* Fade edges for professional look */
+            mask-image: linear-gradient(to right, transparent, black 30%, black 70%, transparent);
+        }
+
+        .roulette-strip {
+            display: flex;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-100px); /* Center of first card */
+            will-change: transform;
+        }
+
+        .number-card {
+            min-width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            font-weight: bold;
+            color: rgba(212, 175, 55, 0.2);
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Center Marking Frame */
+        .selection-box {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 205px;
+            height: 205px;
+            border: 4px solid #D4AF37;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.4);
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .selection-box::before {
+            content: '▼';
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #D4AF37;
+            font-size: 1.2rem;
+        }
+
+        .selection-box::after {
+            content: '▲';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #D4AF37;
+            font-size: 1.2rem;
+        }
+
+        .control-btn {
+            @apply border border-gold/40 px-10 py-3 cinzel text-sm tracking-widest transition-all rounded-full bg-black/20 hover:bg-gold hover:text-crimson opacity-80 hover:opacity-100 disabled:opacity-20;
+        }
+
+        .custom-input {
+            background: transparent;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            color: #D4AF37;
+            text-align: center;
+            outline: none;
+            font-family: 'Cinzel', serif;
+        }
+
+        @media (max-width: 640px) {
+            .number-card { min-width: 150px; font-size: 3rem; }
+            .selection-box { width: 155px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dot-overlay"></div>
+    <div id="snow-container"></div>
+
+    <nav class="fixed top-0 w-full py-6 flex justify-center gap-10 z-50 bg-gradient-to-b from-black/40 to-transparent">
+        <a href="index.html" class="text-gold font-bold cinzel text-sm opacity-80 hover:opacity-100 hover:scale-110 transition-all">HOME</a>
+        <a href="program.html" class="text-gold font-bold cinzel text-sm opacity-80 hover:opacity-100 hover:scale-110 transition-all">PROGRAM</a>
+        <a href="timer.html" class="text-gold font-bold cinzel text-sm opacity-80 hover:opacity-100 hover:scale-110 transition-all">TIMER</a>
+
+            <a href="roll.html" class="text-gold font-bold cinzel text-sm opacity-80 hover:opacity-100 hover:scale-110 transition-all">Roll</a>
+            <a href="reveal.html" class="text-gold font-bold cinzel text-sm opacity-80 hover:opacity-100 hover:scale-110 transition-all">Reveal</a>
+    </nav>
+
+    <main class="relative z-10 text-center w-full">
+        <h1 class="text-gold cinzel text-4xl font-bold uppercase tracking-[0.4em] mb-4">The Roll</h1>
+        
+        <div class="flex items-center justify-center gap-4 mb-8">
+            <span class="cinzel text-gold/60 text-xs tracking-widest">RANGE: 1 -</span>
+            <input type="number" id="maxRange" value="50" min="2" class="custom-input w-20 text-xl font-bold">
+            <button onclick="initializePool()" class="control-btn py-1 px-4 text-[10px]">SET</button>
+        </div>
+
+        <div class="roulette-viewport">
+            <div class="selection-box"></div>
+            <div id="rouletteStrip" class="roulette-strip">
+                </div>
+        </div>
+
+        <div class="mt-8">
+            <button id="spinBtn" onclick="spin()" class="control-btn scale-110 shadow-2xl">SPIN NOW</button>
+            <div class="mt-8 flex justify-center items-center gap-6">
+                <span id="poolText" class="cinzel text-gold/40 text-xs tracking-widest uppercase">Remaining: 50</span>
+                <button onclick="resetPool()" class="text-white/20 text-[10px] cinzel underline hover:text-white/50">RESET ALL</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let numberPool = [];
+        const strip = document.getElementById('rouletteStrip');
+        const spinBtn = document.getElementById('spinBtn');
+        const cardWidth = 200; // Pixel width of number-card
+
+        function initializePool() {
+            const max = parseInt(document.getElementById('maxRange').value);
+            numberPool = Array.from({length: max}, (_, i) => i + 1);
+            updateUI();
+            resetStrip();
+        }
+
+        function updateUI() {
+            document.getElementById('poolText').innerText = `Remaining: ${numberPool.length}`;
+        }
+
+        function resetStrip() {
+            strip.style.transition = 'none';
+            strip.style.transform = 'translateX(-100px)'; // Center the first card
+            strip.innerHTML = '';
+            // Add a few placeholder cards
+            for(let i=0; i<5; i++){
+                const card = document.createElement('div');
+                card.className = 'number-card';
+                card.innerText = '?';
+                strip.appendChild(card);
+            }
+        }
+
+        function spin() {
+            if (numberPool.length === 0) {
+                alert("The pool is empty!");
+                return;
+            }
+
+            spinBtn.disabled = true;
+
+            // 1. Pick winner
+            const winnerIdx = Math.floor(Math.random() * numberPool.length);
+            const winner = numberPool.splice(winnerIdx, 1)[0];
+
+            // 2. Prepare Strip
+            strip.innerHTML = '';
+            strip.style.transition = 'none';
+            strip.style.transform = 'translateX(-100px)';
+
+            const totalCards = 50; // Total length of the roll
+            
+            for (let i = 0; i < totalCards; i++) {
+                const card = document.createElement('div');
+                card.className = 'number-card';
+                
+                if (i === totalCards - 1) {
+                    card.innerText = winner;
+                    card.style.color = "#D4AF37";
+                    card.style.textShadow = "0 0 20px rgba(212,175,55,0.5)";
+                    card.id = "winner";
+                } else {
+                    card.innerText = Math.floor(Math.random() * 100);
+                }
+                strip.appendChild(card);
+            }
+
+            // 3. Execute Roll
+            // We need the last card to be at the viewport center (0px relative to left:50%)
+            // Since cards are 200px wide, and strip starts at -100px (centered on card 1),
+            // moving it left by (totalCards-1) * 200px aligns the last card center.
+            setTimeout(() => {
+                const travel = (totalCards - 1) * cardWidth + 100;
+                strip.style.transition = 'transform 7s cubic-bezier(0.1, 0, 0, 1)';
+                strip.style.transform = `translateX(-${travel}px)`;
+            }, 50);
+
+            // 4. Finalize
+            setTimeout(() => {
+                const winnerCard = document.getElementById('winner');
+                winnerCard.style.fontSize = "8rem";
+                winnerCard.style.color = "#FFF";
+                winnerCard.style.textShadow = "0 0 50px #D4AF37";
+                
+                updateUI();
+                spinBtn.disabled = false;
+            }, 7100);
+        }
+
+        function resetPool() {
+            initializePool();
+        }
+
+        // Snow setup
+        function createSnow() {
+            const container = document.getElementById('snow-container');
+            const flakes = ['❄', '❅', '❆', '•'];
+            setInterval(() => {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                flake.textContent = flakes[Math.floor(Math.random() * flakes.length)];
+                flake.style.left = Math.random() * 100 + 'vw';
+                flake.style.animationDuration = Math.random() * 5 + 7 + 's';
+                flake.style.opacity = Math.random() * 0.4 + 0.2;
+                container.appendChild(flake);
+                setTimeout(() => flake.remove(), 12000);
+            }, 300);
+        }
+
+        initializePool();
+        createSnow();
+    </script>
+</body>
+</html>
